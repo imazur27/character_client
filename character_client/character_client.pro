@@ -1,4 +1,4 @@
-QT       += core gui
+QT       += core gui network
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -9,13 +9,20 @@ CONFIG += c++11
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    character_info_dialog.cpp \
+    client_connection.cpp \
     main.cpp \
-    main_window.cpp
+    main_window.cpp \
+    protocol.cpp
 
 HEADERS += \
-    main_window.h
+    character_info_dialog.h \
+    client_connection.h \
+    main_window.h \
+    protocol.h
 
 FORMS += \
+    character_info_dialog.ui \
     main_window.ui
 
 # Default rules for deployment.
