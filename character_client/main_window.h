@@ -1,21 +1,46 @@
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+/**
+ * @file main_window.h
+ * @brief Main application window with character table
+ */
+
+#ifndef MAIN_WINDOW_H
+#define MAIN_WINDOW_H
 
 #include <QMainWindow>
+#include <QStandardItemModel>
+#include "client_connection.h"
 
-QT_BEGIN_NAMESPACE
-namespace Ui { class MainWindow; }
-QT_END_NAMESPACE
+namespace Ui {
+class MainWindow;
+}
 
-class MainWindow : public QMainWindow
-{
+/**
+ * @class MainWindow
+ * @brief Main application window with character table and controls
+ */
+class MainWindow : public QMainWindow {
     Q_OBJECT
 
 public:
-    MainWindow(QWidget *parent = nullptr);
+    explicit MainWindow(QWidget* parent = nullptr);
     ~MainWindow();
 
+private slots:
+    void slotConnectionEstablished();
+    void slotConnectionFailed(const QString& error);
+    void slotCharactersReceived(const std::vector<CharacterData>& characters);
+    void slotOperationCompleted(bool success, const QString& message);
+    void slotShowInfoClicked();
+
 private:
-    Ui::MainWindow *ui;
+    void setupTable();
+    void refreshCharacters();
+    void showCharacterInfo(int id);
+    void showError(const QString& message);
+
+    Ui::MainWindow* ui;
+    ClientConnection* m_connection;
+    QStandardItemModel* m_model;
 };
-#endif // MAINWINDOW_H
+
+#endif // MAIN_WINDOW_H
