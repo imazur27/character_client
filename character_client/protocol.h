@@ -46,6 +46,17 @@ constexpr uint8_t UPDATE_CHARACTER = 0x05;
 constexpr uint8_t RESP_SUCCESS = 0x80;
 constexpr uint8_t RESP_ERROR = 0x81;
 
+// Connection limits
+constexpr size_t MAX_CONNECTIONS = 1000;
+// 2x typical core count
+constexpr size_t THREAD_POOL_SIZE = 16;
+
+// Timeouts (milliseconds)
+// 30000 seconds
+constexpr unsigned READ_TIMEOUT = 30'000'000;
+ // 10000 seconds
+constexpr unsigned WRITE_TIMEOUT = 10'000'000;
+
 // Network settings
 // this is the hardcoded server port
 constexpr int PORT = 12345;
