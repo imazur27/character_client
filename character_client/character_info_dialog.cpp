@@ -1,7 +1,6 @@
 #include "character_info_dialog.h"
 #include "ui_character_info_dialog.h"
 #include <QMessageBox>
-#include <QFileDialog>
 
 CharacterInfoDialog::CharacterInfoDialog(const CharacterData& character, QWidget* parent)
     : QDialog(parent),
@@ -32,11 +31,18 @@ CharacterData CharacterInfoDialog::getCharacterData() const {
     return m_character;
 }
 
+void CharacterInfoDialog::slotRemoveClicked() {
+    if (QMessageBox::question(this, "Confirm", "Delete this character?") == QMessageBox::Yes) {
+        emit signalRemoveRequested(m_character.id);
+        accept();
+    }
+}
+
 void CharacterInfoDialog::slotUpdateClicked() {
     if (!validateInput()) {
         return;
     }
-
+    m_character.id = ui->idLabel->text().toInt();
     m_character.name = ui->nameEdit->text().toStdString();
     m_character.surname = ui->surnameEdit->text().toStdString();
     m_character.age = ui->ageSpin->value();
@@ -60,11 +66,4 @@ bool CharacterInfoDialog::validateInput() {
         return false;
     }
     return true;
-}
-
-void CharacterInfoDialog::slotRemoveClicked() {
-    if (QMessageBox::question(this, "Confirm", "Delete this character?") == QMessageBox::Yes) {
-        emit signalRemoveRequested(m_character.id);
-        accept();
-    }
 }

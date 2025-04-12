@@ -1,10 +1,8 @@
 #include "add_character_dialog.h"
 #include "ui_add_character_dialog.h"
 #include <QMessageBox>
-#include <QFileDialog>
 #include <QRegularExpression>
 #include <QRegularExpressionValidator>
-#include <QBuffer>
 
 AddCharacterDialog::AddCharacterDialog(QWidget* parent) :
     QDialog(parent),
@@ -16,13 +14,12 @@ AddCharacterDialog::AddCharacterDialog(QWidget* parent) :
     // Hide error labels by default
     ui->nameErrorLabel->hide();
     ui->surnameErrorLabel->hide();
-    ui->imageErrorLabel->hide();
 
     ui->nameEdit->setMaxLength(50);
     ui->surnameEdit->setMaxLength(50);
 
     // Set up validators for name and surname
-    QRegularExpression nameRegex("^[a-zA-Z]+$");
+    QRegularExpression nameRegex("^[a-zA-Z ]+$");
     ui->nameEdit->setValidator(new QRegularExpressionValidator(nameRegex, this));
     ui->surnameEdit->setValidator(new QRegularExpressionValidator(nameRegex, this));
 
@@ -31,14 +28,11 @@ AddCharacterDialog::AddCharacterDialog(QWidget* parent) :
 
     // Set age range
     ui->ageSpin->setMinimum(1);
-    ui->ageSpin->setMaximum(150);
+    ui->ageSpin->setMaximum(179);
 
     // Map widgets to their error labels
     m_errorLabels.insert(ui->nameEdit, ui->nameErrorLabel);
     m_errorLabels.insert(ui->surnameEdit, ui->surnameErrorLabel);
-
-    connect(ui->nameEdit, &QLineEdit::textChanged, this, &AddCharacterDialog::slotValidateInput);
-    connect(ui->surnameEdit, &QLineEdit::textChanged, this, &AddCharacterDialog::slotValidateInput);
 }
 
 AddCharacterDialog::~AddCharacterDialog() {
@@ -51,24 +45,7 @@ CharacterData AddCharacterDialog::getCharacterData() const {
     character.surname = ui->surnameEdit->text().toStdString();
     character.age = ui->ageSpin->value();
     character.bio = ui->bioEdit->toPlainText().toStdString();
-
-    if (m_imageLoaded) {
-        QByteArray imageData;
-        QBuffer buffer(&imageData);
-        buffer.open(QIODevice::WriteOnly);
-        m_pixmap.save(&buffer, "JPG");
-        character.image.assign(imageData.begin(), imageData.end());
-    }
-
     return character;
-}
-
-void AddCharacterDialog::slotValidateInput() {
-    validateName(ui->nameEdit->text()) ? clearError(ui->nameEdit)
-                                      : showError(ui->nameEdit, "Only letters allowed");
-
-    validateName(ui->surnameEdit->text()) ? clearError(ui->surnameEdit)
-                                         : showError(ui->surnameEdit, "Only letters allowed");
 }
 
 void AddCharacterDialog::accept() {
@@ -80,7 +57,7 @@ void AddCharacterDialog::accept() {
 }
 
 bool AddCharacterDialog::validateName(const QString& name) {
-    return !name.isEmpty() && name.contains(QRegularExpression("^[a-zA-Z]+$"));
+    return !name.isEmpty() && name.contains(QRegularExpression("^[a-zA-Z ]+$"));
 }
 
 bool AddCharacterDialog::validateForm() {
