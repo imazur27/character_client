@@ -21,6 +21,7 @@ CharacterInfoDialog::CharacterInfoDialog(const CharacterData& character, QWidget
 
     // Connect signals
     connect(ui->updateButton, &QPushButton::clicked, this, &CharacterInfoDialog::slotUpdateClicked);
+    connect(ui->removeButton, &QPushButton::clicked, this, &CharacterInfoDialog::slotRemoveClicked);
 }
 
 CharacterInfoDialog::~CharacterInfoDialog() {
@@ -59,4 +60,11 @@ bool CharacterInfoDialog::validateInput() {
         return false;
     }
     return true;
+}
+
+void CharacterInfoDialog::slotRemoveClicked() {
+    if (QMessageBox::question(this, "Confirm", "Delete this character?") == QMessageBox::Yes) {
+        emit signalRemoveRequested(m_character.id);
+        accept();
+    }
 }

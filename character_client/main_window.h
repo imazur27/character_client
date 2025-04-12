@@ -29,8 +29,11 @@ private slots:
     void slotConnectionEstablished();
     void slotConnectionFailed(const QString& error);
     void slotCharactersReceived(const std::vector<CharacterData>& characters);
+    void slotCharacterReceived(const CharacterData& character);
     void slotOperationCompleted(bool success, const QString& message);
     void slotShowInfoClicked();
+    void slotAddClicked();
+    void slotAddCompleted(bool success, const QString& message);
 
 private:
     void setupTable();

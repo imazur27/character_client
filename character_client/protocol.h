@@ -21,6 +21,18 @@ struct CharacterData {
     uint8_t age = 1;
     std::vector<uint8_t> image{};
     std::string bio{};
+
+// Serialize/deserialize
+    std::vector<uint8_t> serialize() const;
+    static CharacterData deserialize(const std::vector<uint8_t>& data);
+
+// Helper methods to serialize/deserialize all characters
+    static std::vector<uint8_t> serializeVector(const std::vector<CharacterData>& characters);
+    static std::vector<CharacterData> deserializeVector(const std::vector<uint8_t>& data);
+
+// Helper methods
+    static void write_string(std::vector<uint8_t>& buffer, const std::string& str);
+    static std::string read_string(const std::vector<uint8_t>& buffer, size_t& offset);
 };
 
 namespace Protocol {
@@ -37,6 +49,8 @@ constexpr uint8_t RESP_SUCCESS = 0x80;
 constexpr uint8_t RESP_ERROR = 0x81;
 
 // Network settings
+// 500KB max image size
+constexpr int MAX_IMAGE_SIZE = 500000;
 // this is the hardcoded server port
 constexpr int PORT = 12345;
 

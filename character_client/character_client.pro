@@ -9,6 +9,7 @@ CONFIG += c++11
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    add_character_dialog.cpp \
     character_info_dialog.cpp \
     client_connection.cpp \
     main.cpp \
@@ -16,12 +17,14 @@ SOURCES += \
     protocol.cpp
 
 HEADERS += \
+    add_character_dialog.h \
     character_info_dialog.h \
     client_connection.h \
     main_window.h \
     protocol.h
 
 FORMS += \
+    add_character_dialog.ui \
     character_info_dialog.ui \
     main_window.ui
 
