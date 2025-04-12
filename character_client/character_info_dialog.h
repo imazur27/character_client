@@ -27,10 +27,12 @@ public:
     CharacterData getCharacterData() const;
 
 signals:
+    void signalRemoveRequested(int id);
     void signalUpdateRequested(const CharacterData& character);
 
 private slots:
     void slotUpdateClicked();
+    void slotRemoveClicked();
 
 private:
     bool validateInput();

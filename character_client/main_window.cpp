@@ -4,6 +4,7 @@
 #include <QHeaderView>
 
 #include "character_info_dialog.h"
+#include "add_character_dialog.h"
 
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent),
@@ -19,6 +20,7 @@ MainWindow::MainWindow(QWidget* parent)
 
     // Connect UI signals
     connect(ui->showInfoButton, &QPushButton::clicked, this, &MainWindow::slotShowInfoClicked);
+    connect(ui->addButton, &QPushButton::clicked, this, &MainWindow::slotAddClicked);
 
     // Connect network signals
     connect(
@@ -34,8 +36,16 @@ MainWindow::MainWindow(QWidget* parent)
                 this, &MainWindow::slotCharactersReceived
                 );
     connect(
+                m_connection, &ClientConnection::signalCharacterReceived,
+                this, &MainWindow::slotCharacterReceived
+                );
+    connect(
                 m_connection, &ClientConnection::signalOperationCompleted,
                 this, &MainWindow::slotOperationCompleted
+                );
+    connect(
+                m_connection, &ClientConnection::signalOperationCompleted,
+                this, &MainWindow::slotAddCompleted
                 );
 
     // Connect to server, address hardcoded
@@ -80,6 +90,16 @@ void MainWindow::slotCharactersReceived(const std::vector<CharacterData>& charac
     }
 }
 
+void MainWindow::slotCharacterReceived(const CharacterData& character) {
+    CharacterInfoDialog dialog(character, this);
+    connect(&dialog, &CharacterInfoDialog::signalRemoveRequested, m_connection, &ClientConnection::slotRemoveCharacter);
+    connect(&dialog, &CharacterInfoDialog::signalUpdateRequested, m_connection, &ClientConnection::slotUpdateCharacter);
+    connect(&dialog, &CharacterInfoDialog::signalUpdateRequested, this, [this](const CharacterData&) {
+        refreshCharacters();
+    });
+    dialog.exec();
+}
+
 void MainWindow::slotOperationCompleted(bool success, const QString& message) {
     if (!success) {
         showError(message);
@@ -99,9 +119,28 @@ void MainWindow::slotShowInfoClicked() {
     showCharacterInfo(id);
 }
 
+void MainWindow::slotAddClicked() {
+    AddCharacterDialog dialog(this);
+    if (dialog.exec() == QDialog::Accepted) {
+        CharacterData character = dialog.getCharacterData();
+        m_connection->addCharacter(character);
+    }
+}
+
+void MainWindow::slotAddCompleted(bool success, const QString &message)
+{
+    if (m_connection->lastCommand() == Protocol::ADD_CHARACTER) {
+        if (success) {
+            refreshCharacters();
+            QMessageBox::information(this, "Success", "Character added successfully");
+        } else {
+            showError("Failed to add character: " + message);
+        }
+    }
+}
+
 void MainWindow::showCharacterInfo(int id) {
-    // TODO: need to get character. Connection must sends the request with id, that will be get from
-    // selected row in a table
+    m_connection->getCharacter(id);
 }
 
 void MainWindow::showError(const QString& message) {
