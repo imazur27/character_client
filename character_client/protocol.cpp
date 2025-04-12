@@ -42,8 +42,6 @@ std::vector<uint8_t> CharacterData::serialize() const {
                 sizeof(uint32_t) + surname.size() +
                 // age
                 sizeof(uint8_t) +
-                // image size + image
-                sizeof(uint32_t) + image.size() +
                 // bio size + bio
                 sizeof(uint32_t) + bio.size()
                 );
@@ -52,12 +50,6 @@ std::vector<uint8_t> CharacterData::serialize() const {
     write_string(buffer, name);
     write_string(buffer, surname);
     write_to_buffer<uint8_t>(buffer, age);
-
-    // Serialize image
-    uint32_t image_size = static_cast<uint32_t>(image.size());
-    write_to_buffer(buffer, image_size);
-    buffer.insert(buffer.end(), image.begin(), image.end());
-
     write_string(buffer, bio);
 
     return buffer;
@@ -71,12 +63,6 @@ CharacterData CharacterData::deserialize(const std::vector<uint8_t>& data) {
     character.name = read_string(data, offset);
     character.surname = read_string(data, offset);
     character.age = read_from_buffer<uint8_t>(data, offset);
-
-    // Deserialize image
-    uint32_t image_size = read_from_buffer<uint32_t>(data, offset);
-    character.image.assign(data.begin() + offset, data.begin() + offset + image_size);
-    offset += image_size;
-
     character.bio = read_string(data, offset);
 
     return character;

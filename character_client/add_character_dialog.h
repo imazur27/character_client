@@ -4,7 +4,6 @@
 #include <QDialog>
 #include <QLabel>
 #include <QMap>
-#include <QPixmap>
 #include "protocol.h"
 
 namespace Ui {
@@ -21,7 +20,6 @@ public:
     CharacterData getCharacterData() const;
 
 private slots:
-    void slotValidateInput();
     void accept() override;
 
 private:
@@ -31,9 +29,6 @@ private:
     bool validateForm();
 
     Ui::AddCharacterDialog* ui;
-    QPixmap m_pixmap;
-    bool m_imageLoaded = false;
-
     QMap<QWidget*, QLabel*> m_errorLabels{};
 };
 

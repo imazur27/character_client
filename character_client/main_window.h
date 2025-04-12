@@ -33,7 +33,6 @@ private slots:
     void slotOperationCompleted(bool success, const QString& message);
     void slotShowInfoClicked();
     void slotAddClicked();
-    void slotAddCompleted(bool success, const QString& message);
 
 private:
     void setupTable();

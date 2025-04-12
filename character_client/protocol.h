@@ -19,7 +19,6 @@ struct CharacterData {
     std::string name{};
     std::string surname{};
     uint8_t age = 1;
-    std::vector<uint8_t> image{};
     std::string bio{};
 
 // Serialize/deserialize
@@ -37,7 +36,6 @@ struct CharacterData {
 
 namespace Protocol {
 // Command bytes
-
 constexpr uint8_t GET_ALL = 0x01;
 constexpr uint8_t ADD_CHARACTER = 0x02;
 constexpr uint8_t REMOVE_CHARACTER = 0x03;
@@ -49,14 +47,12 @@ constexpr uint8_t RESP_SUCCESS = 0x80;
 constexpr uint8_t RESP_ERROR = 0x81;
 
 // Network settings
-// 500KB max image size
-constexpr int MAX_IMAGE_SIZE = 500000;
 // this is the hardcoded server port
 constexpr int PORT = 12345;
 
-// message separator
-constexpr uint8_t CR = '\r';
-constexpr uint8_t LF = '\n';
+// message delimiter
+constexpr std::string_view MESSAGE_DELIMITER = "\r\n";
+constexpr uint8_t MESSAGE_DELIMITER_SIZE = 2;
 }
 
 #endif // PROTOCOL_H
