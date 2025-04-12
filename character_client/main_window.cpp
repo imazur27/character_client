@@ -43,12 +43,8 @@ MainWindow::MainWindow(QWidget* parent)
                 m_connection, &ClientConnection::signalOperationCompleted,
                 this, &MainWindow::slotOperationCompleted
                 );
-    connect(
-                m_connection, &ClientConnection::signalOperationCompleted,
-                this, &MainWindow::slotAddCompleted
-                );
 
-    // Connect to server, address hardcoded
+    // Connect to server, address is hardcoded
     m_connection->connectToServer("10.0.2.5");
 }
 
@@ -92,11 +88,14 @@ void MainWindow::slotCharactersReceived(const std::vector<CharacterData>& charac
 
 void MainWindow::slotCharacterReceived(const CharacterData& character) {
     CharacterInfoDialog dialog(character, this);
-    connect(&dialog, &CharacterInfoDialog::signalRemoveRequested, m_connection, &ClientConnection::slotRemoveCharacter);
-    connect(&dialog, &CharacterInfoDialog::signalUpdateRequested, m_connection, &ClientConnection::slotUpdateCharacter);
-    connect(&dialog, &CharacterInfoDialog::signalUpdateRequested, this, [this](const CharacterData&) {
-        refreshCharacters();
-    });
+    connect(
+                &dialog, &CharacterInfoDialog::signalRemoveRequested,
+                m_connection, &ClientConnection::slotRemoveCharacter
+                );
+    connect(
+                &dialog, &CharacterInfoDialog::signalUpdateRequested,
+                m_connection, &ClientConnection::slotUpdateCharacter
+                );
     dialog.exec();
 }
 
@@ -124,18 +123,6 @@ void MainWindow::slotAddClicked() {
     if (dialog.exec() == QDialog::Accepted) {
         CharacterData character = dialog.getCharacterData();
         m_connection->addCharacter(character);
-    }
-}
-
-void MainWindow::slotAddCompleted(bool success, const QString &message)
-{
-    if (m_connection->lastCommand() == Protocol::ADD_CHARACTER) {
-        if (success) {
-            refreshCharacters();
-            QMessageBox::information(this, "Success", "Character added successfully");
-        } else {
-            showError("Failed to add character: " + message);
-        }
     }
 }
 

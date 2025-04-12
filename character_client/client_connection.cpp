@@ -10,6 +10,7 @@ ClientConnection::ClientConnection(QObject* parent)
     connect(m_socket, &QTcpSocket::connected, this, &ClientConnection::slotConnected);
     connect(m_socket, &QTcpSocket::disconnected, this, &ClientConnection::slotDisconnected);
     connect(m_socket, &QTcpSocket::readyRead, this, &ClientConnection::slotReadyRead);
+// In Qt 5.14 and earlier there is signal error(), no errorOccured
     connect(m_socket, QOverload<QAbstractSocket::SocketError>::of(&QAbstractSocket::errorOccurred),
             this, &ClientConnection::slotError);
 }
@@ -34,7 +35,7 @@ bool ClientConnection::findMessageBoundary(size_t &pos)
 // Search for CRLF sequence
     auto it = std::search(
                 m_buffer.begin(), m_buffer.end(),
-                std::begin({CR, LF}), std::end({CR, LF})
+                Protocol::MESSAGE_DELIMITER.begin(), Protocol::MESSAGE_DELIMITER.end()
                 );
 // Change the pos to next iteration
     if (it != m_buffer.end()) {
@@ -78,15 +79,15 @@ void ClientConnection::sendRequest(uint8_t command, const std::vector<uint8_t>& 
 
     // Prepend command byte
     std::vector<uint8_t> packet;
-    // 1 for command and 2 for CRLF
-    packet.reserve(1 + data.size() + 2);
+    // 1 for command
+    packet.reserve(1 + data.size() + Protocol::MESSAGE_DELIMITER_SIZE);
     packet.push_back(command);
     packet.insert(packet.end(), data.begin(), data.end());
 
-    packet.push_back(Protocol::CR);
-    packet.push_back(Protocol::LF);
+    packet.insert(packet.end(), Protocol::MESSAGE_DELIMITER.begin(), Protocol::MESSAGE_DELIMITER.end());
 
     m_socket->write(reinterpret_cast<const char*>(packet.data()), packet.size());
+    m_socket->flush();
 }
 
 void ClientConnection::slotConnected() {
@@ -103,11 +104,12 @@ void ClientConnection::slotReadyRead() {
 
     size_t pos = 0;
 
-    // taking into account TCP messages framing
+    // taking into account TCP messages framing and stacking
     while (findMessageBoundary(pos)) {
         std::vector<uint8_t> message(m_buffer.begin(), m_buffer.begin() + pos);
         processResponse(message);
-        m_buffer.erase(m_buffer.begin(), m_buffer.begin() + pos + 2); // Remove message + CRLF
+        // Remove message + CRLF
+        m_buffer.erase(m_buffer.begin(), m_buffer.begin() + pos + Protocol::MESSAGE_DELIMITER_SIZE);
         // Reset for next search
         pos = 0;
     }
@@ -128,8 +130,12 @@ void ClientConnection::processResponse(const std::vector<uint8_t>& data) {
     }
 
     try {
-        switch (m_expectedResponse) {
+        switch (responseType) {
         case Protocol::GET_ALL:
+            if (payload.size() == 0) {
+                emit signalOperationCompleted(false, "Empty db");
+                break;
+            }
             emit signalCharactersReceived(CharacterData::deserializeVector(payload));
             break;
 
@@ -138,8 +144,16 @@ void ClientConnection::processResponse(const std::vector<uint8_t>& data) {
             break;
 
         case Protocol::ADD_CHARACTER:
+            emit signalOperationCompleted(true, "Add successful");
+            break;
         case Protocol::UPDATE_CHARACTER:
+            emit signalOperationCompleted(true, "Update successful");
+            break;
         case Protocol::REMOVE_CHARACTER:
+            emit signalOperationCompleted(true, "Remove successful");
+            break;
+
+        case Protocol::RESP_SUCCESS:
             emit signalOperationCompleted(true, "Operation successful");
             break;
 
