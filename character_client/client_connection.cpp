@@ -22,6 +22,12 @@ void ClientConnection::connectToServer(const QString& host) {
     m_socket->connectToHost(host, Protocol::PORT);
 }
 
+std::vector<uint8_t> ClientConnection::serializeId(int id) {
+    std::vector<uint8_t> data(sizeof(id));
+    std::memcpy(data.data(), &id, sizeof(id));
+    return data;
+}
+
 bool ClientConnection::findMessageBoundary(size_t &pos)
 {
     using namespace Protocol;
@@ -43,19 +49,24 @@ void ClientConnection::getAllCharacters() {
     m_expectedResponse = Protocol::GET_ALL;
 }
 
+void ClientConnection::getCharacter(int id) {
+    sendRequest(Protocol::GET_ONE, serializeId(id));
+    m_expectedResponse = Protocol::GET_ONE;
+}
+
 void ClientConnection::slotRemoveCharacter(int id) {
-    // TODO: need to serialize id
-    std::vector<uint8_t> id_vector{0};
-    id_vector.resize(sizeof (id));
-    memcpy(id_vector.data(), &id, sizeof (id));
-    sendRequest(Protocol::REMOVE_CHARACTER, id_vector);
+    sendRequest(Protocol::REMOVE_CHARACTER, serializeId(id));
     m_expectedResponse = Protocol::REMOVE_CHARACTER;
 }
 
 void ClientConnection::slotUpdateCharacter(const CharacterData& character) {
-    // TODO: need to serialize character
-    sendRequest(Protocol::UPDATE_CHARACTER);
+    sendRequest(Protocol::UPDATE_CHARACTER, character.serialize());
     m_expectedResponse = Protocol::UPDATE_CHARACTER;
+}
+
+void ClientConnection::addCharacter(const CharacterData& character) {
+    sendRequest(Protocol::ADD_CHARACTER, character.serialize());
+    m_expectedResponse = Protocol::ADD_CHARACTER;
 }
 
 void ClientConnection::sendRequest(uint8_t command, const std::vector<uint8_t>& data) {
@@ -119,8 +130,11 @@ void ClientConnection::processResponse(const std::vector<uint8_t>& data) {
     try {
         switch (m_expectedResponse) {
         case Protocol::GET_ALL:
-            // TODO: need to deserialize characters
-//            emit signalCharactersReceived();
+            emit signalCharactersReceived(CharacterData::deserializeVector(payload));
+            break;
+
+        case Protocol::GET_ONE:
+            emit signalCharacterReceived(CharacterData::deserialize(payload));
             break;
 
         case Protocol::ADD_CHARACTER:

@@ -15,12 +15,15 @@ public:
 
     void connectToServer(const QString& host);
     void getAllCharacters();
+    void getCharacter(int id);
+    void addCharacter(const CharacterData& character);
     uint8_t lastCommand() const { return m_lastCommand; }
 
 signals:
     void signalConnectionEstablished();
     void signalConnectionFailed(const QString& error);
     void signalCharactersReceived(const std::vector<CharacterData>& characters);
+    void signalCharacterReceived(const CharacterData& character);
     void signalOperationCompleted(bool success, const QString& message);
 
 public slots:
@@ -36,6 +39,7 @@ private slots:
 private:
     void sendRequest(uint8_t command, const std::vector<uint8_t>& data = {});
     void processResponse(const std::vector<uint8_t>& data);
+    std::vector<uint8_t> serializeId(int id);
     bool findMessageBoundary(size_t& pos);
 
     QTcpSocket* m_socket;
